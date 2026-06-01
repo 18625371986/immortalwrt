@@ -16,15 +16,6 @@ jobs:
           ref: openwrt-24.10
           fetch-depth: 0
 
-      - name: Cache build cache
-        uses: actions/cache@v3
-        with:
-          path: |
-            .ccache
-          key: ${{ runner.os }}-ccache-${{ github.sha }}
-          restore-keys: |
-            ${{ runner.os }}-ccache-
-
       - name: Install full dependencies
         run: |
           sudo apt update -y
@@ -51,7 +42,6 @@ EOF
 
       - name: Build firmware
         run: |
-          export PATH="/usr/lib/ccache:$PATH"
           make -j2 V=s
 
       - name: Upload artifact
