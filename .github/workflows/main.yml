@@ -1,4 +1,4 @@
-name: Build N1 ImmortalWrt
+name: Build N1 Pure ImmortalWrt
 
 on:
   workflow_dispatch:
@@ -24,7 +24,7 @@ jobs:
         run: |
           ./scripts/feeds update -a
           ./scripts/feeds install -a
-          cat > .config <<EOF
+          cat > .config <<'EOF'
 CONFIG_TARGET_armsr=y
 CONFIG_TARGET_armsr_armv8=y
 CONFIG_TARGET_armsr_armv8_DEVICE_amlogic_gxm=y
