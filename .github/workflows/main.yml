@@ -24,6 +24,7 @@ jobs:
         run: |
           ./scripts/feeds update -a
           ./scripts/feeds install -a
+          # 关键修正：Here-Document 格式+缩进完全合规
           cat > .config <<'EOF'
 CONFIG_TARGET_armsr=y
 CONFIG_TARGET_armsr_armv8=y
