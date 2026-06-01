@@ -1,4 +1,4 @@
-name: Build N1 Pure ImmortalWrt
+name: Build N1 ImmortalWrt
 
 on:
   workflow_dispatch:
@@ -10,19 +10,17 @@ jobs:
   build:
     runs-on: ubuntu-22.04
     steps:
-      - name: Checkout
+      - name: Checkout code
         uses: actions/checkout@v4
         with:
           ref: openwrt-24.10
-          fetch-depth: 1
 
-      - name: Install dependencies (manual)
+      - name: Install dependencies
         run: |
-          sudo apt update
-          sudo apt install -y build-essential libncurses-dev gawk flex bison \
-            libssl-dev git wget curl unzip zstd pkg-config python3-distutils
+          sudo apt update -y
+          sudo apt install -y build-essential libncurses-dev gawk flex bison libssl-dev git wget curl unzip zstd pkg-config python3 python3-pip python3-setuptools
 
-      - name: Configure for N1
+      - name: Prepare config
         run: |
           ./scripts/feeds update -a
           ./scripts/feeds install -a
@@ -39,13 +37,12 @@ CONFIG_PACKAGE_luci-i18n-zh-cn=y
 EOF
           make defconfig
 
-      - name: Build
+      - name: Build firmware
         run: |
           make -j$(nproc) V=s
 
-      - name: Upload firmware
+      - name: Upload artifact
         uses: actions/upload-artifact@v4
         with:
           name: N1-firmware
           path: bin/targets/armsr/armv8/
-          retention-days: 7
