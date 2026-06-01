@@ -1,0 +1,61 @@
+name: Build N1 Pure ImmortalWrt
+
+on:
+  workflow_dispatch:
+  push:
+    branches:
+      - openwrt-24.10
+
+jobs:
+  build:
+    runs-on: ubuntu-22.04
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v3
+        with:
+          ref: openwrt-24.10
+          fetch-depth: 0
+
+      - name: Cache build cache
+        uses: actions/cache@v3
+        with:
+          path: |
+            .ccache
+          key: ${{ runner.os }}-ccache-${{ github.sha }}
+          restore-keys: |
+            ${{ runner.os }}-ccache-
+
+      - name: Install full dependencies
+        run: |
+          sudo apt update -y
+          sudo apt install -y build-essential libncurses-dev gawk flex bison libssl-dev \
+          git wget curl unzip zstd pkg-config python3 python3-pip python3-setuptools \
+          rsync ccache time
+
+      - name: Prepare config
+        run: |
+          ./scripts/feeds update -a
+          ./scripts/feeds install -a
+          cat > .config <<'EOF'
+CONFIG_TARGET_armsr=y
+CONFIG_TARGET_armsr_armv8=y
+CONFIG_TARGET_armsr_armv8_DEVICE_amlogic_gxm=y
+CONFIG_PACKAGE_luci=y
+CONFIG_PACKAGE_luci-base=y
+CONFIG_PACKAGE_luci-mod-admin-full=y
+CONFIG_PACKAGE_luci-theme-bootstrap=y
+CONFIG_PACKAGE_dropbear=y
+CONFIG_PACKAGE_luci-i18n-zh-cn=y
+EOF
+          make defconfig
+
+      - name: Build firmware
+        run: |
+          export PATH="/usr/lib/ccache:$PATH"
+          make -j2 V=s
+
+      - name: Upload artifact
+        uses: actions/upload-artifact@v4
+        with:
+          name: N1-firmware
+          path: bin/targets/armsr/armv8/
